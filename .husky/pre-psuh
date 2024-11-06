@@ -1,0 +1,1 @@
+bun lint --fix --max-warnings=0
