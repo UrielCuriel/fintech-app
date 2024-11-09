@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="138.09067mm"
+   height="21.627327mm"
+   viewBox="0 0 138.09067 21.627327"
+   version="1.1"
+   id="svg1"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs1" />
+  <g
+     id="layer1"
+     transform="translate(-34.419955,-137.68634)">
+    <text
+       xml:space="preserve"
+       style="font-size:27.8639px;line-height:3.3;font-family:'Leo Rounded Pro';-inkscape-font-specification:'Leo Rounded Pro';text-align:center;letter-spacing:-2.89806px;writing-mode:lr-tb;direction:ltr;text-anchor:middle;fill:#302f32;fill-opacity:1;stroke-width:3.74073;stroke-dasharray:11.2223, 3.74073;stroke-opacity:0.70119"
+       x="123.06885"
+       y="158.25508"
+       id="text1"><tspan
+         id="tspan1"
+         style="font-style:normal;font-variant:normal;font-weight:300;font-stretch:normal;line-height:3.3;font-family:N27;-inkscape-font-specification:'N27 Light';letter-spacing:-2.89806px;fill:#302f32;fill-opacity:1;stroke-width:3.74073"
+         x="121.61982"
+         y="158.25508">FINTECH</tspan></text>
+    <g
+       id="g10"
+       transform="matrix(0.13940433,0,0,0.13940433,-30.701523,115.04039)">
+		<g
+   id="g2">
+			<polygon
+   style="fill:#302f32;fill-opacity:1"
+   points="709.141,181.572 640.333,292.539 640.333,317.588 732.859,168.372 576.284,168.372 584.468,181.572 "
+   id="polygon1" />
+
+			<polygon
+   style="fill:#302f32;fill-opacity:1"
+   points="623.716,311.664 615.532,298.464 490.859,298.464 559.667,187.497 559.667,162.448 467.141,311.664 "
+   id="polygon2" />
+
+		</g>
+
+		<polygon
+   style="fill:#eaab41"
+   points="559.667,187.497 640.333,317.589 640.333,317.588 640.333,292.539 559.667,162.448 "
+   id="polygon3" />
+
+		<linearGradient
+   id="linearGradient12"
+   gradientUnits="userSpaceOnUse"
+   x1="640.33301"
+   y1="294.58231"
+   x2="653.33142"
+   y2="294.58231">
+			<stop
+   offset="0"
+   style="stop-color:#64B0A5"
+   id="stop1" />
+
+			<stop
+   offset="0.3947"
+   style="stop-color:#A7D2CC"
+   id="stop2" />
+
+			<stop
+   offset="0.8018"
+   style="stop-color:#E6F2F1"
+   id="stop11" />
+
+			<stop
+   offset="0.9948"
+   style="stop-color:#FFFFFF"
+   id="stop12" />
+
+		</linearGradient>
+
+		
+		
+			<linearGradient
+   id="linearGradient16"
+   gradientUnits="userSpaceOnUse"
+   x1="2170.7478"
+   y1="1919.3351"
+   x2="2183.7463"
+   y2="1919.3351"
+   gradientTransform="rotate(180,1365.2075,1052.3944)">
+			<stop
+   offset="0"
+   style="stop-color:#64B0A5"
+   id="stop13" />
+
+			<stop
+   offset="0.3947"
+   style="stop-color:#A7D2CC"
+   id="stop14" />
+
+			<stop
+   offset="0.8018"
+   style="stop-color:#E6F2F1"
+   id="stop15" />
+
+			<stop
+   offset="0.9948"
+   style="stop-color:#FFFFFF"
+   id="stop16" />
+
+		</linearGradient>
+
+		
+	</g>
+  </g>
+</svg>
