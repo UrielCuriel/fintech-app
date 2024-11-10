@@ -21,7 +21,7 @@ interface UserContextType {
   enableOtp: () => Promise<void>;
   otpQR: string | null;
   login: (email: string, password: string) => Promise<void>;
-  verifyOtp: (otp: string, tempToken: string) => Promise<void>;
+  verifyOtp: (otp: string,) => Promise<void>;
   requiresTotp: boolean;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
 }
@@ -51,9 +51,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         body: formData,
       });
 
-      const result = await response.json();
+      const result = await response?.json();
 
-      if (response.ok) {
+      if (response?.ok) {
         if (result.requires_totp) {
           setRequiresTotp(true);
           setTempToken(result.temp_token);
@@ -115,6 +115,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
+
+      console.log(response);
 
       if (response.ok) {
         setUser(await response.json());
