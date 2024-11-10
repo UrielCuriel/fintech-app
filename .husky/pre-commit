@@ -1,2 +1,2 @@
-bun lint-staged 
-bun run test -- run
+npx lint-staged 
+npm run test -- run

@@ -2,8 +2,6 @@
 
 import { useState } from "react";
 import Image from "next/image";
-import { redirect } from "next/navigation";
-import Cookies from "js-cookie";
 import { Heading } from "@/components/heading";
 import { Field, FieldGroup, Fieldset, Label } from "@/components/fieldset";
 import { Input } from "@/components/input";
@@ -11,6 +9,7 @@ import { Button } from "@/components/button";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSpinnerThird } from "@fortawesome/pro-duotone-svg-icons";
 import { z } from "zod";
+import { useUser } from "@/context/UserContext";
 
 const loginSchema = z.object({
   email: z.string().email("Must be a valid email"),
@@ -22,13 +21,20 @@ const otpSchema = z.object({
 });
 
 export default function LoginForm() {
+  const { login, verifyOtp, requiresTotp, error, loading } = useUser();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [tempToken, setTempToken] = useState("");
   const [otp, setOtp] = useState("");
-  const [requiresTotp, setRequiresTotp] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState("");
+
+  const handleLogin = async (event: React.FormEvent) => {
+    event.preventDefault();
+    await login(email, password);
+  };
+
+  const handleOtpSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    await verifyOtp(otp, "");
+  };
   const [errors, setErrors] = useState({
     email: "",
     password: "",
@@ -80,75 +86,6 @@ export default function LoginForm() {
     validateOtp(value);
   };
 
-  const handleLogin = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setIsLoading(true);
-    setError("");
-
-    try {
-      const formData = new FormData();
-      formData.append("username", email);
-      formData.append("password", password);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login/access-token`, {
-        method: "POST",
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        if (result.requires_totp) {
-          setRequiresTotp(true);
-          setTempToken(result.temp_token);
-        } else {
-          Cookies.set("access_token", result.access_token);
-          redirect("/dashboard");
-          return;
-        }
-      } else {
-        setError(result.message || "Invalid login");
-      }
-    } catch (err) {
-      console.error("Error logging in:", err);
-      setError("Something went wrong, please try again later.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleOtpSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setIsLoading(true);
-    setError("");
-    let success = false;
-    try {
-      const formData = new FormData();
-      formData.append("totp_code", otp);
-      formData.append("temp_token", tempToken);
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/login/access-token/otp`, {
-        method: "POST",
-        body: formData,
-      });
-
-      const result = await response.json();
-
-      if (response.ok) {
-        Cookies.set("access_token", result.access_token, { secure: true });
-        success = true;
-      } else {
-        setError(result.message || "Invalid OTP");
-      }
-    } catch (err) {
-      console.error("Error validating OTP:", err);
-      setError("Something went wrong, please try again later.");
-    } finally {
-      setIsLoading(false);
-      if (success) {
-        redirect("/dashboard");
-      }
-    }
-  };
-
   return (
     <div className="flex min-h-full flex-1 flex-col justify-center">
       <div className="relative h-full sm:mx-auto sm:w-full sm:max-w-sm px-6 py-12 lg:px-8 rounded-xl bg-white shadow-[0px_0px_0px_1px_rgba(9,9,11,0.07),0px_2px_2px_0px_rgba(9,9,11,0.05)] dark:bg-zinc-900 dark:shadow-[0px_0px_0px_1px_rgba(255,255,255,0.1)] dark:before:pointer-events-none dark:before:absolute dark:before:-inset-px dark:before:rounded-xl dark:before:shadow-[0px_2px_8px_0px_rgba(0,_0,_0,_0.20),_0px_1px_0px_0px_rgba(255,_255,_255,_0.06)_inset] forced-colors:outline">
@@ -175,8 +112,8 @@ export default function LoginForm() {
                 </FieldGroup>
               </Fieldset>
               {error && <p className="text-red-500 text-sm">{error}</p>}
-              <Button color="dark/white" type="submit" className="w-full" disabled={isLoading || !!errors.email || !!errors.password}>
-                {isLoading ? <FontAwesomeIcon icon={faSpinnerThird} className="fa-spin" /> : "Sign in"}
+              <Button color="dark/white" type="submit" className="w-full" disabled={loading || !!errors.email || !!errors.password}>
+                {loading ? <FontAwesomeIcon icon={faSpinnerThird} className="fa-spin" /> : "Sign in"}
               </Button>
             </form>
           ) : (
@@ -187,8 +124,8 @@ export default function LoginForm() {
                 {errors.otp && <p className="text-red-500 text-sm">{errors.otp}</p>}
               </Field>
               {error && <p className="text-red-500 text-sm">{error}</p>}
-              <Button color="dark/white" type="submit" className="w-full" disabled={isLoading || !!errors.otp}>
-                {isLoading ? <FontAwesomeIcon icon={faSpinnerThird} className="fa-spin" /> : "Verify OTP"}
+              <Button color="dark/white" type="submit" className="w-full" disabled={loading || !!errors.otp}>
+                {loading ? <FontAwesomeIcon icon={faSpinnerThird} className="fa-spin" /> : "Verify OTP"}
               </Button>
             </form>
           )}
