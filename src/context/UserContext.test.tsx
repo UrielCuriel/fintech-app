@@ -20,7 +20,7 @@ const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
 const TestComponent = () => {
-  const { user, login, logout, fetchUser, updateUser, enableOtp, verifyOtp, updatePassword } = useUser();
+  const { user, login, logout, fetchUser, updateUser, configOtp, enableOtp, verifyOtp, updatePassword } = useUser();
 
   return (
     <div>
@@ -36,8 +36,11 @@ const TestComponent = () => {
       <button onClick={() => updateUser({ email: "new@example.com" })} aria-label="Update User">
         Update User
       </button>
-      <button onClick={enableOtp} aria-label="Enable OTP">
+      <button onClick={() => configOtp()} aria-label="Enable OTP">
         Enable OTP
+      </button>
+      <button onClick={() => enableOtp("123456")} aria-label="Confirm OTP">
+        Confirm OTP
       </button>
       <button onClick={() => verifyOtp("123456")} aria-label="Verify OTP">
         Verify OTP
@@ -52,6 +55,7 @@ const TestComponent = () => {
 
 describe("UserContext", () => {
   beforeEach(() => {
+    vi.clearAllMocks(); // Limpia todos los mocks antes de cada prueba
     mockFetch.mockClear();
     Cookies.get.mockClear();
     Cookies.set.mockClear();
@@ -59,9 +63,9 @@ describe("UserContext", () => {
   });
 
   afterEach(() => {
+    vi.resetAllMocks(); // Resetea todos los mocks para evitar fugas entre pruebas
     cleanup();
   });
-
   it("should login a user", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
@@ -93,7 +97,6 @@ describe("UserContext", () => {
 
   it("should fetch user data", async () => {
     Cookies.get.mockReturnValue("token");
-  
 
     mockFetch.mockResolvedValue({
       ok: true,
@@ -134,6 +137,10 @@ describe("UserContext", () => {
     mockFetch.mockResolvedValueOnce({ ok: true });
     mockFetch.mockResolvedValueOnce({
       ok: true,
+      json: async () => ({ temp_token: "token" }),
+    });
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
       blob: async () => new Blob(),
     });
 
@@ -145,19 +152,60 @@ describe("UserContext", () => {
 
     screen.getByRole("button", { name: "Enable OTP" }).click();
 
-    await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(2));
+    await waitFor(() => {
+      const specificCalls = mockFetch.mock.calls.filter((call) => call[0].includes("auth/otp/generate"));
+      expect(specificCalls).toHaveLength(1);
+    });
+  });
+
+  it("should confirm OTP", async () => {
+    Cookies.get.mockReturnValue("token");
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ email: "new@example.com" }),
+    });
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      blob: async () => new Blob(),
+    });
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ otp_enabled: true }),
+    });
+    render(
+      <UserProvider>
+        <TestComponent />
+      </UserProvider>
+    );
+
+    screen.getByRole("button", { name: "Enable OTP" }).click();
+    screen.getByRole("button", { name: "Confirm OTP" }).click();
+    await waitFor(() => {
+      console.log(mockFetch.mock.calls);
+      const specificCalls = mockFetch.mock.calls.filter((call) => call[0].includes("/auth/otp/enable"));
+      expect(specificCalls).toHaveLength(1);
+    });
   });
 
   it("should verify OTP", async () => {
+    console.log("verify otp");
     Cookies.get.mockReturnValue("token");
     mockFetch.mockResolvedValueOnce({
       ok: true,
-      json: async () => ({ temp_token: "token" }),
+      call: "1",
+      json: async () => ({ temp_token: "token", otp_enabled: true }),
     });
 
     mockFetch.mockResolvedValueOnce({
       ok: true,
+      call: "2",
       json: async () => ({ access_token: "token" }),
+    });
+
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      call: "3",
+      json: async () => ({ email: "test@example.com" }),
     });
 
     render(
@@ -170,6 +218,11 @@ describe("UserContext", () => {
     screen.getByRole("button", { name: "Login" }).click();
 
     screen.getByRole("button", { name: "Verify OTP" }).click();
+
+    await waitFor(() => {
+      const specificCalls = mockFetch.mock.calls;
+      console.log(specificCalls);
+    });
 
     await waitFor(() => expect(Cookies.set).toHaveBeenCalledWith("access_token", "token", { secure: true }));
   });
