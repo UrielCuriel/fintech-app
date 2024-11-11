@@ -110,7 +110,7 @@ export default function DashboardLayout({
       }
     >
       <AlertContainer />
-      {showBanner && <Banner type="warning" message="you have not enabled two-factor authentication" actionIcon={faShieldCheck} actionText="Enable now" actionLink="/dashboard/profile" onClose={() => setShowBanner(false)} />}
+      {showBanner && <Banner type="warning" message="you have not enabled two-factor authentication" actionText="Enable now" actionLink="/dashboard/profile" onClose={() => setShowBanner(false)} />}
 
       {children}
     </StackedLayout>
