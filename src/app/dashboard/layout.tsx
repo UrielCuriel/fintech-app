@@ -3,12 +3,15 @@ import { Avatar } from "@/components/avatar";
 import { Dropdown, DropdownButton, DropdownDivider, DropdownItem, DropdownLabel, DropdownMenu } from "@/components/dropdown";
 import { Navbar, NavbarDivider, NavbarItem, NavbarLabel, NavbarSection, NavbarSpacer } from "@/components/navbar";
 import { Sidebar, SidebarBody, SidebarHeader, SidebarItem, SidebarLabel, SidebarSection } from "@/components/sidebar";
+import { AlertContainer } from "@/components/alertContainer";
 import { StackedLayout } from "@/components/stacked-layout";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Banner } from "@/components/banner";
 import { faCog, faInbox, faSignOut } from "@fortawesome/pro-duotone-svg-icons";
 import { faSearch, faUser, faShieldCheck, faLightbulb } from "@fortawesome/pro-light-svg-icons";
 import { useUser } from "@/context/UserContext";
 import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 const navItems = [
   { label: "Dashboard", url: "/dashboard" },
   { label: "Settings", url: "/dashboard/settings" },
@@ -21,6 +24,14 @@ export default function DashboardLayout({
 }>) {
   const { user, logout } = useUser();
   const pathname = usePathname();
+  const [showBanner, setShowBanner] = useState(true);
+
+  useEffect(() => {
+    if (user?.otp_enabled) {
+      setShowBanner(false);
+    }
+  }, [user]);
+
   return (
     <StackedLayout
       navbar={
@@ -98,6 +109,9 @@ export default function DashboardLayout({
         </Sidebar>
       }
     >
+      <AlertContainer />
+      {showBanner && <Banner type="warning" message="you have not enabled two-factor authentication" actionIcon={faShieldCheck} actionText="Enable now" actionLink="/dashboard/profile" onClose={() => setShowBanner(false)} />}
+
       {children}
     </StackedLayout>
   );

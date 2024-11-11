@@ -2,21 +2,26 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/button";
 import { Divider } from "@/components/divider";
-import { Label, Description } from "@/components/fieldset";
+import { Label, Description, Field } from "@/components/fieldset";
 import { Heading, Subheading } from "@/components/heading";
 import { Input } from "@/components/input";
 import { Text } from "@/components/text";
 import { Switch, SwitchField } from "@/components/switch";
 import { useUser } from "@/context/UserContext";
+import { Dialog, DialogActions, DialogBody, DialogDescription, DialogTitle } from "@/components/dialog";
+
 import Image from "next/image";
 
 export default function ProfilePage() {
-  const { user, updateUser, updatePassword, enableOtp, loading, error, otpQR } = useUser();
+  const { user, updateUser, updatePassword, enableOtp, loading, error, otpQR, configOtp } = useUser();
+
   const [fullName, setFullName] = useState(user?.full_name || "");
   const [email, setEmail] = useState(user?.email || "");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [otpEnabled, setOtpEnabled] = useState(user?.otp_enabled || false);
+  const [showQR, setShowQR] = useState(false);
+  const [totp, setTotp] = useState("");
 
   const handleProfileSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -29,7 +34,14 @@ export default function ProfilePage() {
   };
 
   const handleOtpToggle = async () => {
-    await enableOtp();
+    await configOtp();
+    setShowQR(true);
+  };
+
+  const handleOtpSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    await enableOtp(totp);
+    setShowQR(false);
   };
 
   useEffect(() => {
@@ -140,11 +152,26 @@ export default function ProfilePage() {
             <Switch checked={otpEnabled} onChange={handleOtpToggle} disabled={loading || user?.otp_enabled} />
           </div>
         </SwitchField>
-        {otpQR && (
-          <div className="mt-6">
-            <Image src={otpQR} alt="OTP QR Code" width={200} height={200} />
-          </div>
-        )}
+        <Dialog open={showQR} onClose={() => setShowQR(false)}>
+          <form onSubmit={handleOtpSubmit} className="space-y-6">
+            <DialogTitle>Config TOTP Application</DialogTitle>
+            <DialogDescription>Scan the QR code below using your authenticator app to enable TOTP for your account.</DialogDescription>
+            <DialogBody>
+              <div className="flex justify-center">{otpQR && otpQR.length > 0 && <Image src={otpQR} alt="QR Code" width={200} height={200} />}</div>
+              <Field>
+                <Label>TOTP</Label>
+                <Input name="totp_code" placeholder="000000" value={totp} onChange={(e) => setTotp(e.target.value)} />
+                <Description>Enter the TOTP code from your authenticator app.</Description>
+              </Field>
+            </DialogBody>
+            <DialogActions>
+              <Button plain onClick={() => setShowQR(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">Refund</Button>
+            </DialogActions>
+          </form>
+        </Dialog>
         {error && <p className="text-red-500 text-sm">{error}</p>}
       </div>
     </>

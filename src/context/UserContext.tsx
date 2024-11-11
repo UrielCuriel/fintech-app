@@ -18,12 +18,14 @@ interface UserContextType {
   fetchUser: () => Promise<void>;
   logout: () => void;
   updateUser: (newUser: User) => Promise<void>;
-  enableOtp: () => Promise<void>;
+  enableOtp: (totp_code: string) => Promise<void>;
   otpQR: string | null;
   login: (email: string, password: string) => Promise<void>;
-  verifyOtp: (otp: string,) => Promise<void>;
+  verifyOtp: (otp: string) => Promise<void>;
   requiresTotp: boolean;
   updatePassword: (currentPassword: string, newPassword: string) => Promise<void>;
+  signup: (email: string, password: string, fullName: string) => Promise<void>;
+  configOtp: () => Promise<void>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -40,7 +42,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   const login = async (email: string, password: string) => {
     setLoading(true);
     setError("");
-
+    let success = false;
     try {
       const formData = new FormData();
       formData.append("username", email);
@@ -60,7 +62,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         } else {
           Cookies.set("access_token", result.access_token, { secure: true });
           fetchUser();
-          redirect("/dashboard");
+          success = true;
         }
       } else {
         setError(result.message || "Invalid login");
@@ -70,6 +72,9 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       setError("Something went wrong, please try again later.");
     } finally {
       setLoading(false);
+      if (success) {
+        redirect("/dashboard");
+      }
     }
   };
 
@@ -78,6 +83,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     setLoading(true);
     setError("");
 
+    let success = false;
     try {
       if (!tempToken) return setError("Something went wrong, please try again later.");
       const formData = new FormData();
@@ -95,13 +101,41 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         Cookies.set("access_token", result.access_token, { secure: true });
         setRequiresTotp(false);
         fetchUser();
-        redirect("/dashboard");
+        success = true;
       } else {
         setError(result.message || "Invalid OTP");
       }
     } catch (err) {
       console.error("Error validating OTP:", err);
       setError("Something went wrong, please try again later.");
+    } finally {
+      setLoading(false);
+      if (success) {
+        redirect("/dashboard");
+      }
+    }
+  };
+
+  const signup = async (email: string, password: string, fullName: string) => {
+    setLoading(true);
+    setError("");
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/signup`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password, full_name: fullName }),
+      });
+
+      if (response.ok) {
+        await login(email, password);
+      } else {
+        const data = await response.json();
+        setError(data.message || "Failed to sign up");
+      }
+    } catch (error) {
+      console.error("Error signing up:", error);
+      setError("Failed to sign up");
     } finally {
       setLoading(false);
     }
@@ -115,8 +149,6 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-
-      console.log(response);
 
       if (response.ok) {
         setUser(await response.json());
@@ -171,23 +203,37 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const enableOtp = async () => {
+  const configOtp = async () => {
+    setLoading(true);
+    try {
+      const qrResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/otp/generate`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${Cookies.get("access_token")}`, "Content-Type": "image/png" },
+      });
+      const qrData = await qrResponse.blob();
+      const qrUrl = URL.createObjectURL(qrData);
+      setOtpQR(qrUrl);
+    } catch (error) {
+      console.error("Error generating QR code:", error);
+      setError("Failed to generate QR code");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const enableOtp = async (totp_code: string) => {
     setLoading(true);
     //if otp is already enabled, return
     if (user?.otp_enabled) return;
+    if (!totp_code) return setError("Please enter the OTP code");
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/otp/enable`, {
         method: "PUT",
-        headers: { Authorization: `Bearer ${Cookies.get("access_token")}` },
+        headers: { Authorization: `Bearer ${Cookies.get("access_token")}`, "Content-Type": "application/json" },
+        body: JSON.stringify({ totp_code }),
       });
       if (response.ok) {
-        const qrResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}auth/otp/generate`, {
-          method: "GET",
-          headers: { Authorization: `Bearer ${Cookies.get("access_token")}`, "Content-Type": "image/png" },
-        });
-        const qrData = await qrResponse.blob();
-        const qrUrl = URL.createObjectURL(qrData);
-        setOtpQR(qrUrl);
+        fetchUser();
       }
     } catch (error) {
       console.error("Error enabling OTP:", error);
@@ -222,6 +268,8 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
         verifyOtp,
         requiresTotp,
         updatePassword,
+        signup,
+        configOtp,
       }}
     >
       {children}
