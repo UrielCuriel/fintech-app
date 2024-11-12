@@ -1,8 +1,12 @@
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { cookies } from 'next/headers'
+import { SessionData, sessionOptions } from "@/lib/session";
+import { getIronSession } from "iron-session";
 
-export function middleware(req: NextRequest) {
-  const token = req.cookies.get('access_token')
+export async function middleware(req: NextRequest) {
+  const session = await getIronSession<SessionData>(await cookies(), sessionOptions);
+  const token = session.accessToken
   const isLoginPage = req.nextUrl.pathname === '/login'
 
   // Si está en login y tiene token, redirige al dashboard

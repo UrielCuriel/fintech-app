@@ -1,60 +1,51 @@
 "use client";
-import { useEffect, useState } from "react";
 import { Button } from "@/components/button";
 import { Divider } from "@/components/divider";
-import { Label, Description, Field } from "@/components/fieldset";
+import { Label, Description, Field, ErrorMessage } from "@/components/fieldset";
 import { Heading, Subheading } from "@/components/heading";
 import { Input } from "@/components/input";
 import { Text } from "@/components/text";
 import { Switch, SwitchField } from "@/components/switch";
 import { useUser } from "@/context/UserContext";
 import { Dialog, DialogActions, DialogBody, DialogDescription, DialogTitle } from "@/components/dialog";
+import { updateUserDataAction, updatePasswordAction } from "@/actions/userActions";
+import { enableMfaAction, getQrCode } from "@/actions/authActions";
+import { useActionState, useEffect, useState } from "react";
 
 import Image from "next/image";
 
 export default function ProfilePage() {
-  const { user, updateUser, updatePassword, enableOtp, loading, error, otpQR, configOtp } = useUser();
-
-  const [fullName, setFullName] = useState(user?.full_name || "");
-  const [email, setEmail] = useState(user?.email || "");
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [otpEnabled, setOtpEnabled] = useState(user?.otp_enabled || false);
+  const { user, refetchUser } = useUser();
+  const [updateUserDataState, updateUserData, isPendingUserData] = useActionState(updateUserDataAction, { success: false });
+  const [updatePasswordState, updatePassword, isPendingPassword] = useActionState(updatePasswordAction, { success: false });
+  const [enableMfaState, enableMfa, isPendingEnableMFA] = useActionState(enableMfaAction, { success: false });
   const [showQR, setShowQR] = useState(false);
-  const [totp, setTotp] = useState("");
+  const [otpQR, setOtpQR] = useState("");
 
-  const handleProfileSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    await updateUser({ full_name: fullName, email });
-  };
-
-  const handlePasswordSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    await updatePassword(currentPassword, newPassword);
-  };
-
-  const handleOtpToggle = async () => {
-    await configOtp();
-    setShowQR(true);
-  };
-
-  const handleOtpSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    await enableOtp(totp);
-    setShowQR(false);
+  const toggleMFA = async (isEnableMFA: boolean) => {
+    if (isEnableMFA) {
+      const qrUrl = URL.createObjectURL(await getQrCode());
+      console.log(qrUrl);
+      setOtpQR(qrUrl);
+      setShowQR(true);
+    }
   };
 
   useEffect(() => {
-    setFullName(user?.full_name || "");
-    setEmail(user?.email || "");
-    setCurrentPassword("");
-    setNewPassword("");
-    setOtpEnabled(user?.otp_enabled || false);
-  }, [user]);
+    if (enableMfaState.success) {
+      setShowQR(false);
+    }
+  }, [enableMfaState.success]);
+
+  useEffect(() => {
+    if (updateUserDataState.success || updatePasswordState.success || enableMfaState.success) {
+      refetchUser();
+    }
+  }, [updateUserDataState.success, updatePasswordState.success, enableMfaState.success, refetchUser]);
 
   return (
     <>
-      <form onSubmit={handleProfileSubmit} className="mx-auto max-w-4xl">
+      <form action={updateUserData} className="mx-auto max-w-4xl">
         <Heading>Profile</Heading>
         <Text>Update your profile information.</Text>
         <Divider className="my-10 mt-6" />
@@ -65,7 +56,10 @@ export default function ProfilePage() {
             <Text>This will be displayed on your public profile.</Text>
           </div>
           <div>
-            <Input aria-label="Full Name" name="full_name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+            <Field>
+              <Input aria-label="Full Name" name="full_name" defaultValue={user?.full_name} invalid={!!updateUserDataState.errors?.full_name} />
+              {updateUserDataState.errors?.full_name && <ErrorMessage>{updateUserDataState.errors?.full_name}</ErrorMessage>}
+            </Field>
           </div>
         </section>
         <section className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
@@ -74,7 +68,10 @@ export default function ProfilePage() {
             <Text>This is how you log in and how we contact you.</Text>
           </div>
           <div>
-            <Input type="email" aria-label="Email" name="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+            <Field>
+              <Input type="email" aria-label="Email" name="email" defaultValue={user?.email} invalid={!!updateUserDataState.errors?.email} />
+              {updateUserDataState.errors?.email && <ErrorMessage>{updateUserDataState.errors?.email}</ErrorMessage>}
+            </Field>
           </div>
         </section>
 
@@ -84,14 +81,14 @@ export default function ProfilePage() {
           <Button type="reset" plain>
             Reset
           </Button>
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={isPendingUserData || !!updateUserDataState.errors}>
             Save changes
           </Button>
         </div>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {updateUserDataState.message && <p className="text-red-500 text-sm">{updateUserDataState.message}</p>}
       </form>
 
-      <form onSubmit={handlePasswordSubmit} className="mx-auto max-w-4xl mt-10">
+      <form action={updatePassword} className="mx-auto max-w-4xl mt-10">
         <Heading>Change Password</Heading>
         <Text>To change your password, enter your current password and a new password.</Text>
         <Divider className="my-10 mt-6" />
@@ -102,7 +99,8 @@ export default function ProfilePage() {
             <Text>Enter your current password to authenticate.</Text>
           </div>
           <div className="space-y-4">
-            <Input type="password" aria-label="Current Password" name="current_password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} />
+            <Input type="password" aria-label="Current Password" name="current_password" invalid={!!updatePasswordState.errors?.current_password} />
+            {updatePasswordState.errors?.current_password && <ErrorMessage>{updatePasswordState.errors?.current_password}</ErrorMessage>}
           </div>
         </section>
 
@@ -112,7 +110,8 @@ export default function ProfilePage() {
             <Text>Enter a new password to replace your current one.</Text>
           </div>
           <div className="space-y-4">
-            <Input type="password" aria-label="New Password" name="new_password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} />
+            <Input type="password" aria-label="New Password" name="new_password" invalid={!!updatePasswordState.errors?.new_password} />
+            {updatePasswordState.errors?.new_password && <ErrorMessage>{updatePasswordState.errors?.new_password}</ErrorMessage>}
           </div>
         </section>
 
@@ -132,47 +131,50 @@ export default function ProfilePage() {
           <Button type="reset" plain>
             Reset
           </Button>
-          <Button type="submit" disabled={loading}>
+          <Button type="submit" disabled={isPendingPassword || !!updatePasswordState.errors}>
             Change Password
           </Button>
         </div>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {updatePasswordState.message && <p className="text-red-500 text-sm">{updatePasswordState.message}</p>}
       </form>
 
       <div className="mx-auto max-w-4xl mt-10">
-        <Heading>Security</Heading>
-        <Text>Enable Multi Factor Authentication (MFA) for your account.</Text>
-        <Divider className="my-10 mt-6" />
-        <SwitchField className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
-          <div className="space-y-1">
-            <Label>Enable TOTP</Label>
-            <Description>Enable TOTP for your account, to authenticate using an authenticator app like Google Authenticator.</Description>
-          </div>
-          <div>
-            <Switch checked={otpEnabled} onChange={handleOtpToggle} disabled={loading || user?.otp_enabled} />
-          </div>
-        </SwitchField>
+        <form action={enableMfa} className="space-y-6">
+          <Heading>Security</Heading>
+          <Text>Enable Multi Factor Authentication (MFA) for your account.</Text>
+          <Divider className="my-10 mt-6" />
+          <SwitchField className="grid gap-x-8 gap-y-6 sm:grid-cols-2">
+            <div className="space-y-1">
+              <Label>Enable TOTP</Label>
+              <Description>Enable TOTP for your account, to authenticate using an authenticator app like Google Authenticator.</Description>
+            </div>
+            <div>
+              <Switch checked={user?.otp_enabled} onChange={toggleMFA} disabled={isPendingEnableMFA || user?.otp_enabled} />
+            </div>
+          </SwitchField>
+        </form>
         <Dialog open={showQR} onClose={() => setShowQR(false)}>
-          <form onSubmit={handleOtpSubmit} className="space-y-6">
+          <form action={enableMfa} className="space-y-6">
             <DialogTitle>Config TOTP Application</DialogTitle>
             <DialogDescription>Scan the QR code below using your authenticator app to enable TOTP for your account.</DialogDescription>
             <DialogBody>
               <div className="flex justify-center">{otpQR && otpQR.length > 0 && <Image src={otpQR} alt="QR Code" width={200} height={200} />}</div>
               <Field>
                 <Label>TOTP</Label>
-                <Input name="totp_code" placeholder="000000" value={totp} onChange={(e) => setTotp(e.target.value)} />
+                <Input name="totp_code" placeholder="000000" invalid={!!enableMfaState.errors?.totp_code} />
                 <Description>Enter the TOTP code from your authenticator app.</Description>
+                {enableMfaState.errors?.totp_code && <ErrorMessage>{enableMfaState.errors?.totp_code}</ErrorMessage>}
               </Field>
+              {enableMfaState.message && <p className="text-red-500 text-sm">{enableMfaState.message}</p>}
             </DialogBody>
             <DialogActions>
               <Button plain onClick={() => setShowQR(false)}>
                 Cancel
               </Button>
-              <Button type="submit">Refund</Button>
+              <Button type="submit">Enable</Button>
             </DialogActions>
           </form>
         </Dialog>
-        {error && <p className="text-red-500 text-sm">{error}</p>}
       </div>
     </>
   );
