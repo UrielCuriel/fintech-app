@@ -1,88 +1,71 @@
-import { render, screen, fireEvent, cleanup } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, cleanup } from "@testing-library/react";
 import LoginForm from "./Form";
-import { useUser } from "@/context/UserContext";
+import { useActionState } from "react";
+import { describe, it, beforeEach, vi, expect } from "vitest";
 
-vi.mock("@/context/UserContext");
+vi.mock(import("react"), async (importOriginal) => {
+  const actual = await importOriginal();
+  return {
+    ...actual,
+    useActionState: vi.fn(actual.useActionState),
+  };
+});
 
 describe("LoginForm", () => {
-  const mockLogin = vi.fn();
-  const mockVerifyOtp = vi.fn();
-  const mockUseUser = {
-    login: mockLogin,
-    verifyOtp: mockVerifyOtp,
-    requiresTotp: false,
-    error: null,
-    loading: false,
-  };
-
   beforeEach(() => {
-    vi.resetAllMocks();
-    (useUser as vi.Mock).mockReturnValue(mockUseUser);
-  });
-
-  afterEach(() => {
+    vi.clearAllMocks();
     cleanup();
   });
 
-  it("renders login form", () => {
+  it("renders login form initially", () => {
+    (useActionState as vi.Mock).mockReturnValue([{ requiresTotp: false, errors: {}, message: "" }, vi.fn(), false]);
+
     render(<LoginForm />);
-    expect(screen.getByLabelText(/email address/i)).toBeDefined();
-    expect(screen.getByLabelText(/password/i)).toBeDefined();
-    expect(screen.getByRole("button", { name: /sign in/i })).toBeDefined();
-  });
 
-  it("validates email and password fields", () => {
-    render(<LoginForm />);
-    const emailInput = screen.getByLabelText(/email address/i);
-    const passwordInput = screen.getByLabelText(/password/i);
-
-    fireEvent.change(emailInput, { target: { value: "invalid-email" } });
-    fireEvent.change(passwordInput, { target: { value: "short" } });
-
-    expect(screen.getByText(/must be a valid email/i)).toBeDefined();
-    expect(screen.getByText(/password must be at least 8 characters/i)).toBeDefined();
-  });
-
-  it("calls login function on form submit", async () => {
-    render(<LoginForm />);
-    const emailInput = screen.getByLabelText(/email address/i);
-    const passwordInput = screen.getByLabelText(/password/i);
-    const submitButton = screen.getByRole("button", { name: /sign in/i });
-
-    fireEvent.change(emailInput, { target: { value: "test@example.com" } });
-    fireEvent.change(passwordInput, { target: { value: "password123" } });
-    fireEvent.click(submitButton);
-
-    expect(mockLogin).toHaveBeenCalledWith("test@example.com", "password123");
+    expect(screen.getByLabelText(/Email Address/i)).toBeDefined();
+    expect(screen.getByLabelText(/Password/i)).toBeDefined();
+    expect(screen.getByRole("button", { name: /Sign in/i })).toBeDefined();
   });
 
   it("renders OTP form when requiresTotp is true", () => {
-    mockUseUser.requiresTotp = true;
+    (useActionState as vi.Mock).mockReturnValueOnce([{ requiresTotp: true, errors: {}, message: "" }, vi.fn(), false]).mockReturnValueOnce([{ errors: {}, message: "" }, vi.fn(), false]);
+
     render(<LoginForm />);
-    expect(screen.getByLabelText(/otp code/i)).toBeDefined();
-    expect(screen.getByRole("button", { name: /verify otp/i })).toBeDefined();
+
+    expect(screen.getByLabelText(/OTP Code/i)).toBeDefined();
+    expect(screen.getByRole("button", { name: /Verify OTP/i })).toBeDefined();
   });
 
-  it("validates OTP field", () => {
-    mockUseUser.requiresTotp = true;
+  it("displays error messages for login form", () => {
+    (useActionState as vi.Mock).mockReturnValue([{ requiresTotp: false, errors: { username: "Invalid email", password: "Invalid password" }, message: "" }, vi.fn(), false]);
+
     render(<LoginForm />);
-    const otpInput = screen.getByLabelText(/otp code/i);
 
-    fireEvent.change(otpInput, { target: { value: "123" } });
-
-    expect(screen.getByText(/otp must be exactly 6 digits/i)).toBeDefined();
+    expect(screen.getByText(/Invalid email/i)).toBeDefined();
+    expect(screen.getByText(/Invalid password/i)).toBeDefined();
   });
 
-  it("calls verifyOtp function on OTP form submit", async () => {
-    mockUseUser.requiresTotp = true;
+  it("displays error message for OTP form", () => {
+    (useActionState as vi.Mock).mockReturnValueOnce([{ requiresTotp: true, errors: {}, message: "" }, vi.fn(), false]).mockReturnValueOnce([{ errors: { totp_code: "Invalid OTP" }, message: "" }, vi.fn(), false]);
+
     render(<LoginForm />);
-    const otpInput = screen.getByLabelText(/otp code/i);
-    const submitButton = screen.getByRole("button", { name: /verify otp/i });
 
-    fireEvent.change(otpInput, { target: { value: "123456" } });
-    fireEvent.click(submitButton);
+    expect(screen.getByText(/Invalid OTP/i)).toBeDefined();
+  });
 
-    expect(mockVerifyOtp).toHaveBeenCalledWith("123456");
+  it("disables login button when pending", () => {
+    (useActionState as vi.Mock).mockReturnValue([{ requiresTotp: false, errors: {}, message: "" }, vi.fn(), true]);
+
+    render(<LoginForm />);
+
+    expect(screen.getByRole("button", { name: /Sign in/i })).toHaveProperty("disabled", true);
+  });
+
+  it("disables OTP button when pending", () => {
+    (useActionState as vi.Mock).mockReturnValueOnce([{ requiresTotp: true, errors: {}, message: "" }, vi.fn(), false]).mockReturnValueOnce([{ errors: {}, message: "" }, vi.fn(), true]);
+
+    render(<LoginForm />);
+
+    expect(screen.getByRole("button", { name: "Verify OTP" })).toHaveProperty("disabled", true);
   });
 });
