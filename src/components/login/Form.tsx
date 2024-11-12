@@ -33,7 +33,7 @@ export default function LoginForm() {
 
   const handleOtpSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    await verifyOtp(otp, "");
+    await verifyOtp(otp);
   };
   const [errors, setErrors] = useState({
     email: "",

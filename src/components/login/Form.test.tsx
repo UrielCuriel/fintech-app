@@ -83,6 +83,6 @@ describe("LoginForm", () => {
     fireEvent.change(otpInput, { target: { value: "123456" } });
     fireEvent.click(submitButton);
 
-    expect(mockVerifyOtp).toHaveBeenCalledWith("123456", "");
+    expect(mockVerifyOtp).toHaveBeenCalledWith("123456");
   });
 });
