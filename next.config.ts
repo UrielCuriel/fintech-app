@@ -1,4 +1,4 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from 'next'
 
 const nextConfig: NextConfig = {
   images: {
@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
         port: '',
         pathname: '/**',
       },
-    ]
+    ],
   },
   async headers() {
     return [
@@ -19,47 +19,51 @@ const nextConfig: NextConfig = {
         headers: [
           {
             key: 'X-DNS-Prefetch-Control',
-            value: 'on'
+            value: 'on',
           },
           {
             key: 'Strict-Transport-Security',
-            value: 'max-age=31536000; includeSubDomains'
+            value: 'max-age=31536000; includeSubDomains',
           },
           {
             key: 'X-Frame-Options',
-            value: 'DENY'
+            value: 'DENY',
           },
           {
             key: 'X-Content-Type-Options',
-            value: 'nosniff'
+            value: 'nosniff',
           },
           {
             key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin'
+            value: 'strict-origin-when-cross-origin',
           },
           {
             key: 'X-XSS-Protection',
-            value: '1; mode=block'
+            value: '1; mode=block',
           },
           {
             key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()'
+            value: 'camera=(), microphone=(), geolocation=()',
           },
           {
             key: 'Content-Security-Policy',
             value: `
-              default-src 'self';
-              script-src 'self' 'unsafe-eval' 'unsafe-inline';
-              style-src 'self' 'unsafe-inline';
-              img-src 'self' blob: data:;
-              font-src 'self';
-              connect-src 'self' ${process.env.NEXT_PUBLIC_API_URL};
-            `.replace(/\s{2,}/g, ' ').trim()
-          }
-        ]
-      }
+                default-src 'self';
+                script-src 'self' 'unsafe-eval' 'unsafe-inline' https://kit.fontawesome.com;
+                style-src 'self';
+                img-src 'self' blob: data:;
+                font-src 'self';
+                connect-src 'self' ${process.env.NEXT_PUBLIC_API_URL};
+                report-uri /csp-violation-report-endpoint;
+                upgrade-insecure-requests;
+              `
+              .replace(/\s{2,}/g, ' ')
+              .trim(),
+          },
+        ],
+      },
     ]
-  }
-};
+  },
+}
 
-export default nextConfig;
+export default nextConfig
