@@ -7,7 +7,7 @@ export async function POST(
     const body = await req.json();
     const report = body['csp-report'];
 
-    console.log('CSP Violation Report:', report);
+    console.error('CSP Violation Report:', report);
 
     // Aquí podrías almacenar el reporte en una base de datos para análisis posterior
     // await saveReportToDatabase(report);

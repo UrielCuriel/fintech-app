@@ -21,7 +21,6 @@ export type EnableMfaActionState = {
 
 export async function getQrCode() {
   const session = await getIronSession<SessionData>(await cookies(), sessionOptions);
-  console.log(session.accessToken);
   const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/otp/generate`, {
     method: "GET",
     headers: {

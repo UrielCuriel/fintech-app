@@ -25,7 +25,6 @@ export default function ProfilePage() {
   const toggleMFA = async (isEnableMFA: boolean) => {
     if (isEnableMFA) {
       const qrUrl = URL.createObjectURL(await getQrCode());
-      console.log(qrUrl);
       setOtpQR(qrUrl);
       setShowQR(true);
     }
