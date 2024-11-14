@@ -5,7 +5,10 @@ import { Navbar, NavbarDivider, NavbarItem, NavbarLabel, NavbarSection, NavbarSp
 import { Sidebar, SidebarBody, SidebarHeader, SidebarItem, SidebarLabel, SidebarSection } from "@/components/sidebar";
 import { AlertContainer } from "@/components/alertContainer";
 import { StackedLayout } from "@/components/stacked-layout";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { Banner } from "@/components/banner";
+import { faCog, faInbox, faSignOut } from "@fortawesome/pro-duotone-svg-icons";
+import { faSearch, faUser, faShieldCheck, faLightbulb } from "@fortawesome/pro-light-svg-icons";
 import { useUser } from "@/context/UserContext";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -49,10 +52,10 @@ export default function DashboardLayout({
           <NavbarSpacer />
           <NavbarSection>
             <NavbarItem href="/search" aria-label="Search">
-              <i className="fa-duotone fa-search"></i>
+              <FontAwesomeIcon icon={faSearch} />
             </NavbarItem>
             <NavbarItem href="/inbox" aria-label="Inbox">
-              <i className="fa-duotone fa-inbox"></i>
+              <FontAwesomeIcon icon={faInbox} />
             </NavbarItem>
             <Dropdown>
               <DropdownButton as={NavbarItem}>
@@ -60,25 +63,25 @@ export default function DashboardLayout({
               </DropdownButton>
               <DropdownMenu className="min-w-64" anchor="bottom end">
                 <DropdownItem href="/dashboard/profile">
-                  <i className="fa-duotone fa-user mr-2"></i>
+                  <FontAwesomeIcon icon={faUser} className="mr-2" />
                   <DropdownLabel>My profile</DropdownLabel>
                 </DropdownItem>
                 <DropdownItem href="/dashboard/settings">
-                  <i className="fa-duotone fa-cog mr-2"></i>
+                  <FontAwesomeIcon icon={faCog} className="mr-2" />
                   <DropdownLabel>Settings</DropdownLabel>
                 </DropdownItem>
                 <DropdownDivider />
                 <DropdownItem href="#">
-                  <i className="fa-duotone fa-shield-check mr-2"></i>
+                  <FontAwesomeIcon icon={faShieldCheck} className="mr-2" />
                   <DropdownLabel>Privacy policy</DropdownLabel>
                 </DropdownItem>
                 <DropdownItem href="#">
-                  <i className="fa-duotone fa-lightbulb mr-2"></i>
+                  <FontAwesomeIcon icon={faLightbulb} className="mr-2" />
                   <DropdownLabel>Share feedback</DropdownLabel>
                 </DropdownItem>
                 <DropdownDivider />
                 <DropdownItem onClick={logout}>
-                  <i className="fa-duotone fa-sign-out mr-2"></i>
+                  <FontAwesomeIcon icon={faSignOut} className="mr-2" />
                   <DropdownLabel>Sign out</DropdownLabel>
                 </DropdownItem>
               </DropdownMenu>
