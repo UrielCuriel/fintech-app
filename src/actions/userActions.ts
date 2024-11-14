@@ -11,8 +11,8 @@ const signupSchema = z.object({
   email: z.string().email("Must be a valid email"),
   password: z.string().min(8, "Password must be at least 8 characters").max(40, "Password must be less than 40 characters"),
   full_name: z.string().min(3, "Full name must be at least 3 characters").max(100, "Full name must be less than 100 characters"),
-  confirmPassword: z.string(),
-}).refine(data => data.password === data.confirmPassword, { message: "Passwords do not match", path: ["confirmPassword"] });
+  confirm_password: z.string(),
+}).refine(data => data.password === data.confirm_password, { message: "Passwords do not match", path: ["confirmPassword"] });
 
 const updateUserDataSchema = z.object({
   full_name: z.string().min(3, "Full name must be at least 3 characters").max(100, "Full name must be less than 100 characters"),
