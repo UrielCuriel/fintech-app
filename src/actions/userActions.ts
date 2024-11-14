@@ -54,6 +54,7 @@ type UpdatePasswordActionState = {
 };
 
 export async function signupAction(prevState: SignupActionState, formData: FormData): Promise<SignupActionState> {
+  let success = false;
   try {
     // Validación de datos usando Zod
     const validationData = signupSchema.safeParse({
@@ -89,13 +90,15 @@ export async function signupAction(prevState: SignupActionState, formData: FormD
         message: result.message || "Something went wrong, please try again later.",
       };
     }
-
-    // Redirige en caso de éxito
-    redirect("/login");
+    success = true;
     return { success: true };
   } catch (err) {
     console.error("Error signing up:", err);
     return { success: false, message: "Something went wrong, please try again later." };
+  } finally {
+    if (success) {
+      redirect("/login");
+    }
   }
 }
 
