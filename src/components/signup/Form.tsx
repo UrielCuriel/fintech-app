@@ -59,7 +59,7 @@ export default function SignupForm() {
                   </Field>
                 </FieldGroup>
               </Fieldset>
-              <Button type="submit" className="w-full" disabled={isPendingSignUp || !!signUpState.errors}>
+              <Button type="submit" className="w-full" disabled={isPendingSignUp}>
                 {isPendingSignUp ? (
                   <>
                     <span className="mr-2">Loading</span>

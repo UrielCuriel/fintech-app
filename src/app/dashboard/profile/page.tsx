@@ -130,7 +130,7 @@ export default function ProfilePage() {
           <Button type="reset" plain>
             Reset
           </Button>
-          <Button type="submit" disabled={isPendingPassword || !!updatePasswordState.errors}>
+          <Button type="submit" disabled={isPendingPassword }>
             Change Password
           </Button>
         </div>
