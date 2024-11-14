@@ -6,9 +6,6 @@ import { Heading } from "@/components/heading";
 import { Field, FieldGroup, Fieldset, Label, ErrorMessage } from "@/components/fieldset";
 import { Input, InputGroup } from "@/components/input";
 import { Button } from "@/components/button";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSpinnerThird } from "@fortawesome/pro-duotone-svg-icons";
-import { faEye, faEyeSlash } from "@fortawesome/pro-light-svg-icons";
 import { useActionState } from "react";
 import { signupAction } from "@/actions/userActions";
 
@@ -42,7 +39,10 @@ export default function SignupForm() {
                     <Label htmlFor="password">Password</Label>
                     <InputGroup>
                       <Input id="password" name="password" type={showPassword ? "text" : "password"} invalid={!!signUpState.errors?.password} />
-                      <FontAwesomeIcon icon={showPassword ? faEye : faEyeSlash} className="w-5 h-5 absolute right-2 top-2 text-gray-500 cursor-pointer" onMouseDown={() => setShowPassword(true)} onMouseUp={() => setShowPassword(false)} />
+                      <Button plain className="!absolute right-1 top-1" onMouseDown={() => setShowPassword(true)} onMouseUp={() => setShowPassword(false)}>
+                        {showPassword ? <i className="fa-duotone fa-eye-slash"></i> : <i className="fa-duotone fa-eye"></i>}
+                        <span className="sr-only">Show password</span>
+                      </Button>
                     </InputGroup>
                     {signUpState.errors?.password && <ErrorMessage>{signUpState.errors?.password}</ErrorMessage>}
                   </Field>
@@ -50,7 +50,10 @@ export default function SignupForm() {
                     <Label htmlFor="confirmPassword">Confirm Password</Label>
                     <InputGroup>
                       <Input id="confirmPassword" name="confirm_password" type={showConfirmPassword ? "text" : "password"} invalid={!!signUpState.errors?.confirm_password} />
-                      <FontAwesomeIcon icon={showConfirmPassword ? faEye : faEyeSlash} className="w-5 h-5 absolute right-2 top-2 text-gray-500 cursor-pointer" onMouseDown={() => setShowConfirmPassword(true)} onMouseUp={() => setShowConfirmPassword(false)} />
+                      <Button plain className="!absolute right-1 top-1" onMouseDown={() => setShowConfirmPassword(true)} onMouseUp={() => setShowConfirmPassword(false)}>
+                        {showConfirmPassword ? <i className="fa-duotone fa-eye-slash"></i> : <i className="fa-duotone fa-eye"></i>}
+                        <span className="sr-only">Show password confirmation</span>
+                      </Button>
                     </InputGroup>
                     {signUpState.errors?.confirm_password && <ErrorMessage>{signUpState.errors?.confirm_password}</ErrorMessage>}
                   </Field>
@@ -60,11 +63,12 @@ export default function SignupForm() {
                 {isPendingSignUp ? (
                   <>
                     <span className="mr-2">Loading</span>
-                    <FontAwesomeIcon icon={faSpinnerThird} spin />
+                    <i className="fa-duotone fa-spinner-third fa-spin"></i>
                   </>
                 ) : (
                   "Sign up"
                 )}
+                <span className="sr-only">Sign up</span>
               </Button>
               {signUpState.message && <p className="text-red-500 text-sm">{signUpState.message}</p>}
             </form>

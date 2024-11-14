@@ -1,12 +1,10 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faInfoCircle, faCheckCircle, faExclamationCircle, faExclamationTriangle } from "@fortawesome/pro-light-svg-icons";
 import Link from "next/link";
 
 const ICONS = {
-  info: faInfoCircle,
-  warning: faExclamationTriangle,
-  error: faExclamationCircle,
-  success: faCheckCircle,
+  info: "fa-info-circle",
+  warning: "fa-exclamation-triangle",
+  error: "fa-exclamation-circle",
+  success: "fa-check-circle",
 };
 
 const COLORS = {
@@ -27,7 +25,7 @@ interface BannerProps {
 export const Banner: React.FC<BannerProps> = ({ type = "info", message, actionText, actionLink, onClose }) => {
   return (
     <div className={`flex items-center border-l-4 p-4 mb-4 ${COLORS[type]}`}>
-      <FontAwesomeIcon icon={ICONS[type]} className="mr-3 w-5 h-5" size="lg" />
+      <i className={`fa-duotone ${ICONS[type]} mr-3 w-5 h-5`}></i>
       <div className="flex-1">{message}</div>
       {actionLink && (
         <Link href={actionLink} className="ml-4 text-sm font-medium underline">

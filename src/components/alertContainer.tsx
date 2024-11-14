@@ -1,14 +1,12 @@
 import { useAlert } from "@/context/AlertContext";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { IconDefinition, faInfoCircle, faCheckCircle, faExclamationCircle, faExclamationTriangle } from "@fortawesome/pro-light-svg-icons";
 
 type AlertType = "info" | "success" | "warning" | "error";
 
-const alertStyles: Record<AlertType, { bg: string; text: string; icon: IconDefinition }> = {
-  info: { bg: "bg-blue-50", text: "text-blue-700", icon: faInfoCircle },
-  success: { bg: "bg-green-50", text: "text-green-700", icon: faCheckCircle },
-  warning: { bg: "bg-yellow-50", text: "text-yellow-700", icon: faExclamationCircle },
-  error: { bg: "bg-red-50", text: "text-red-700", icon: faExclamationTriangle },
+const alertStyles: Record<AlertType, { bg: string; text: string; icon: string }> = {
+  info: { bg: "bg-blue-50", text: "text-blue-700", icon: "fa-info-circle" },
+  success: { bg: "bg-green-50", text: "text-green-700", icon: "fa-check-circle" },
+  warning: { bg: "bg-yellow-50", text: "text-yellow-700", icon: "fa-exclamation-triangle" },
+  error: { bg: "bg-red-50", text: "text-red-700", icon: "fa-exclamation-circle" },
 };
 
 export function AlertContainer() {
@@ -21,7 +19,7 @@ export function AlertContainer() {
         return (
           <div key={alert.id} className={`rounded-md ${bg} p-4 shadow-lg`}>
             <div className="flex">
-              <FontAwesomeIcon icon={icon} className={`h-5 w-5 ${text}`} />
+              <i className={`fa-duotone ${icon} h-5 w-5 ${text}`}></i>
               <div className="ml-3">
                 <p className={`text-sm ${text}`}>{alert.message}</p>
               </div>
