@@ -6,74 +6,14 @@ import { Heading } from "@/components/heading";
 import { Field, FieldGroup, Fieldset, Label, ErrorMessage } from "@/components/fieldset";
 import { Input, InputGroup } from "@/components/input";
 import { Button } from "@/components/button";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSpinnerThird } from "@fortawesome/pro-duotone-svg-icons";
-import { faEye, faEyeSlash } from "@fortawesome/pro-light-svg-icons";
-
-import { z } from "zod";
-import { useUser } from "@/context/UserContext";
-
-const signupSchema = z.object({
-  email: z.string().email(),
-  fullName: z.string().min(2).max(50),
-  password: z
-    .string()
-    .min(8, "Password must be at least 8 characters")
-    .max(40, "Password must be less than 40 characters")
-    .regex(/[a-z]/, "Password must contain at least one lowercase letter")
-    .regex(/[A-Z]/, "Password must contain at least one uppercase letter")
-    .regex(/[0-9]/, "Password must contain at least one number")
-    .regex(/[^a-zA-Z0-9]/, "Password must contain at least one special character"),
-  confirmPassword: z.string(),
-});
+import { useActionState } from "react";
+import { signupAction } from "@/actions/userActions";
 
 export default function SignupForm() {
-  const { signup, error, loading } = useUser();
-  const [email, setEmail] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+  const [signUpState, signUp, isPendingSignUp] = useActionState(signupAction, { success: false });
+
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const validateField = (field: string, value: string) => {
-    try {
-      if (value) {
-        signupSchema.shape[field as keyof typeof signupSchema.shape].parse(value);
-      }
-      setErrors((prev) => ({ ...prev, [field]: "" }));
-      if (field === "confirmPassword") {
-        if (password !== value) {
-          setErrors((prev) => ({ ...prev, confirmPassword: "Passwords do not match" }));
-        } else {
-          setErrors((prev) => ({ ...prev, confirmPassword: "" }));
-        }
-      }
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        setErrors((prev) => ({ ...prev, [field]: err.errors[0].message }));
-      }
-    }
-  };
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    try {
-      signupSchema.parse({ email, fullName, password, confirmPassword });
-      await signup(email, password, fullName);
-    } catch (err) {
-      if (err instanceof z.ZodError) {
-        err.errors.forEach((error) => {
-          setErrors((prev) => ({ ...prev, [error.path[0]]: error.message }));
-        });
-      }
-    }
-  };
-
-  const handleBlur = (field: string, value: string) => {
-    validateField(field, value);
-  };
 
   return (
     <div className="flex min-h-full flex-1 flex-col justify-center">
@@ -82,48 +22,55 @@ export default function SignupForm() {
           <Image alt="Fintech logo" src="/fintech.svg" width={40} height={40} className="mx-auto h-10 w-auto dark:invert" />
           <Heading className="mt-10 text-center">Sign up for an account</Heading>
           <div className="mt-10 sm:mx-auto sm:w-full sm:max-w-sm">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form action={signUp} className="space-y-6">
               <Fieldset>
                 <FieldGroup>
                   <Field>
                     <Label htmlFor="email">Email</Label>
-                    <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} onBlur={(e) => handleBlur("email", e.target.value)} invalid={!!errors.email} />
-                    {errors.email && <ErrorMessage>{errors.email}</ErrorMessage>}
+                    <Input id="email" name="email" type="email" invalid={!!signUpState.errors?.email} />
+                    {signUpState.errors?.email && <ErrorMessage>{signUpState.errors?.email}</ErrorMessage>}
                   </Field>
                   <Field>
                     <Label htmlFor="fullName">Full Name</Label>
-                    <Input id="fullName" type="text" value={fullName} onChange={(e) => setFullName(e.target.value)} onBlur={(e) => handleBlur("fullName", e.target.value)} invalid={!!errors.fullName} />
-                    {errors.fullName && <ErrorMessage>{errors.fullName}</ErrorMessage>}
+                    <Input id="fullName" name="full_name" type="text" invalid={!!signUpState.errors?.full_name} />
+                    {signUpState.errors?.full_name && <ErrorMessage>{signUpState.errors?.full_name}</ErrorMessage>}
                   </Field>
                   <Field>
                     <Label htmlFor="password">Password</Label>
                     <InputGroup>
-                      <Input id="password" type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} onBlur={(e) => handleBlur("password", e.target.value)} invalid={!!errors.password} />
-                      <FontAwesomeIcon icon={showPassword ? faEye : faEyeSlash} className="w-5 h-5 absolute right-2 top-2 text-gray-500 cursor-pointer" onMouseDown={() => setShowPassword(true)} onMouseUp={() => setShowPassword(false)} />
+                      <Input id="password" name="password" type={showPassword ? "text" : "password"} invalid={!!signUpState.errors?.password} />
+                      <Button plain className="!absolute right-1 top-1" onMouseDown={() => setShowPassword(true)} onMouseUp={() => setShowPassword(false)}>
+                        {showPassword ? <i className="fa-duotone fa-eye-slash"></i> : <i className="fa-duotone fa-eye"></i>}
+                        <span className="sr-only">Show password</span>
+                      </Button>
                     </InputGroup>
-                    {errors.password && <ErrorMessage>{errors.password}</ErrorMessage>}
+                    {signUpState.errors?.password && <ErrorMessage>{signUpState.errors?.password}</ErrorMessage>}
                   </Field>
                   <Field>
                     <Label htmlFor="confirmPassword">Confirm Password</Label>
                     <InputGroup>
-                      <Input id="confirmPassword" type={showConfirmPassword ? "text" : "password"} value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} onBlur={(e) => handleBlur("confirmPassword", e.target.value)} invalid={!!errors.confirmPassword} />
-                      <FontAwesomeIcon icon={showConfirmPassword ? faEye : faEyeSlash} className="w-5 h-5 absolute right-2 top-2 text-gray-500 cursor-pointer" onMouseDown={() => setShowConfirmPassword(true)} onMouseUp={() => setShowConfirmPassword(false)} />
+                      <Input id="confirmPassword" name="confirm_password" type={showConfirmPassword ? "text" : "password"} invalid={!!signUpState.errors?.confirm_password} />
+                      <Button plain className="!absolute right-1 top-1" onMouseDown={() => setShowConfirmPassword(true)} onMouseUp={() => setShowConfirmPassword(false)}>
+                        {showConfirmPassword ? <i className="fa-duotone fa-eye-slash"></i> : <i className="fa-duotone fa-eye"></i>}
+                        <span className="sr-only">Show password confirmation</span>
+                      </Button>
                     </InputGroup>
-                    {errors.confirmPassword && <ErrorMessage>{errors.confirmPassword}</ErrorMessage>}
+                    {signUpState.errors?.confirm_password && <ErrorMessage>{signUpState.errors?.confirm_password}</ErrorMessage>}
                   </Field>
                 </FieldGroup>
               </Fieldset>
-              <Button type="submit" className="w-full" disabled={loading || !!errors.email || !!errors.fullName || !!errors.password || !!errors.confirmPassword}>
-                {loading ? (
+              <Button type="submit" className="w-full" disabled={isPendingSignUp || !!signUpState.errors}>
+                {isPendingSignUp ? (
                   <>
                     <span className="mr-2">Loading</span>
-                    <FontAwesomeIcon icon={faSpinnerThird} spin />
+                    <i className="fa-duotone fa-spinner-third fa-spin"></i>
                   </>
                 ) : (
                   "Sign up"
                 )}
+                <span className="sr-only">Sign up</span>
               </Button>
-              {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+              {signUpState.message && <p className="text-red-500 text-sm">{signUpState.message}</p>}
             </form>
             <p className="mt-10 text-center text-sm text-gray-500">
               Already have an account?{" "}
