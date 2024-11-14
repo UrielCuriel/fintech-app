@@ -49,12 +49,11 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: `
                 default-src 'self';
-                script-src 'self' 'unsafe-eval' 'unsafe-inline' https://kit.fontawesome.com;
+                script-src 'self' 'unsafe-eval' 'unsafe-inline' https://kit.fontawesome.com https://ka-p.fontawesome.com/';
                 style-src 'self';
                 img-src 'self' blob: data:;
                 font-src 'self';
-                connect-src 'self' ${process.env.NEXT_PUBLIC_API_URL};
-                report-uri /csp-violation-report-endpoint;
+                connect-src 'self' ${process.env.NEXT_PUBLIC_API_URL} https://ka-p.fontawesome.com/;
                 upgrade-insecure-requests;
               `
               .replace(/\s{2,}/g, ' ')
