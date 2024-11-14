@@ -5,8 +5,6 @@ import { Heading } from "@/components/heading";
 import { Field, FieldGroup, Fieldset, Label, ErrorMessage } from "@/components/fieldset";
 import { Input } from "@/components/input";
 import { Button } from "@/components/button";
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faSpinnerThird } from "@fortawesome/pro-duotone-svg-icons";
 import { loginAction, verifyOtpAction } from "@/actions/loginActions";
 import { useActionState } from "react";
 
@@ -40,7 +38,7 @@ export default function LoginForm() {
               </Fieldset>
               {loginState.message && <p className="text-red-500 text-sm/6">{loginState.message}</p>}
               <Button color="dark/white" type="submit" className="w-full" disabled={isPendingLogin}>
-                {isPendingLogin ? <FontAwesomeIcon icon={faSpinnerThird} className="fa-spin" /> : "Sign in"}
+                {isPendingLogin ? <i className="fa-duotone fa-spinner-third fa-spin"></i> : "Sign in"}
                 <span className="sr-only">Sign in</span>
               </Button>
             </form>
@@ -53,7 +51,7 @@ export default function LoginForm() {
               </Field>
               {verifyOtpState.message && <p className="text-red-500 text-sm/6">{verifyOtpState.message}</p>}
               <Button color="dark/white" type="submit" className="w-full" disabled={isPendingVerify} id="verify-otp">
-                {isPendingVerify ? <FontAwesomeIcon icon={faSpinnerThird} className="fa-spin" /> : "Verify OTP"}
+                {isPendingVerify ? <i className="fa-duotone fa-spinner-third fa-spin"></i> : "Verify OTP"}
                 <span className="sr-only">Verify OTP</span>
               </Button>
             </form>
